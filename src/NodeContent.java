@@ -16,21 +16,22 @@ public class NodeContent {
     private boolean nested = false;
     private int type = 0;
     // type 0 : 常数，1：幂函数，2：正弦sin因子，3：余弦cos因子，4：连乘Item，5：嵌套因子，6：表达式因子
+    private Pattern notNestConst = Pattern.compile("[+-]?\\d+"); // 常数项
+    private Pattern notNestPow =
+            Pattern.compile("[+-]?(\\d+\\*)?x(\\^[+-]?\\d+)?");
+    private Pattern notNestSin =
+            Pattern.compile("[+-]?(sin)\\(+x\\)+(\\^[+-]?\\d+)?"); //
+    private Pattern notNestCos =
+            Pattern.compile("[+-]?(cos)\\(+x\\)+(\\^[+-]?\\d+)?"); //
 
     public void setContent(String s) { //还要判断表达式因子有无嵌套，有则WF
         this.string = s;
-        // This method is for JudgeType
-        Pattern notNestConst = Pattern.compile("[+-]?\\d+"); // 常数项
-        Pattern notNestPow = Pattern.compile("[+-]?(\\d+\\*)?x(\\^[+-]?\\d+)?");
-        Pattern notNestSin = Pattern.compile("[+-]?(sin)\\(+x\\)+(\\^[+-]?\\d+)?"); //
-        Pattern notNestCos = Pattern.compile("[+-]?(cos)\\(+x\\)+(\\^[+-]?\\d+)?"); //
         // "sin(" 后面不是x的"左括号"，sin( 1 + cos(x)), cos(sin(x^2))
         // 或"sin(x" 后面不是")", 而有一些奇怪的东西潜入
         Pattern nestBracket = Pattern.compile("(sin\\((?!x))|(cos\\((?!x))" +
                 "|(sin\\(x(?!\\)))|(cos\\(x(?!\\)))");
         Matcher nest = nestBracket.matcher(string);
-
-        if (nest.find()){  // 接下来看sin,cos中嵌套
+        if (nest.find()) {  // 接下来看sin,cos中嵌套
             // 要先判断最外层是不是带括号扩起来或者是"表达式因子"和其他因子的连乘项，如果是连乘，则type == 4
             if (JudgeExp(string)) { // 还有可能是Type4连乘，现在想不出好的判断方法
                 type = 6;
@@ -46,43 +47,43 @@ public class NodeContent {
             } else if (string.contains("*")) { // 这就是一个连乘的Item
                 if (notNestPow.matcher(string).matches()) {
                     type = 1;
-                } else if (JudgeItem(string)){
+                } else if (JudgeItem(string)) {
                     type = 4;
                 }
             } else if (string.contains("sin")) {
                 if (!notNestSin.matcher(string).matches()) {
                     System.out.println("WRONG FORMAT!");
-                    System.out.println("content have sin but not sinfunc");
-
+                    //System.out.println("content have sin but not sinfunc");
                 } else {
                     type = 2;
                 }
             } else if (string.contains("cos")) {
                 if (!notNestCos.matcher(string).matches()) {
                     System.out.println("WRONG FORMAT!");
-                    System.out.println("content have cos but ont cosfunc");
+                    //System.out.println("content have cos but ont cosfunc");
                 } else {
                     type = 3;
                 }
             } else if (string.contains("x")) {
                 if (!notNestPow.matcher(string).matches()) {
                     System.out.println("WRONG FORMAT!");
-                    System.out.println("Content have x but not powerfunc");
+                    //System.out.println("Content have x but not powerfunc");
                 } else {
                     type = 1;
                 }
             } else {
                 if (!notNestConst.matcher(string).matches()) {
                     System.out.println("WRONG FORMAT!");
-                    System.out.println("content dont match constant ");
+                    System.out.println("Not anything including constant ");
                 } else {
                     type = 0;
                 }
             }
 
         }
-        if (string.startsWith("(") && string.endsWith(")")) { // /先看是否为表达式因子,这个判断还有一些问题，不一定是最外层的括号
-            //String tmp = string.substring(1, string.length() - 1); // 把最外层括号去掉，再看里面是不是表达式
+        if ((string.startsWith("(") || string.startsWith("-(")
+                || string.startsWith("+(")) && string.endsWith(")")) {
+            //String tmp = string.substring(1, string.length() - 1);
             if (JudgeExp(string)) { // 去掉最外层括号如果还发现是表达式
                 type = 6;
             }  // 丢给expression？
@@ -116,11 +117,12 @@ public class NodeContent {
             Item item = new Item(string);
             item.cut();
             return item.DeriItem();
-        } else if (this.type == 5){ // nested
+        } else if (this.type == 5) { // nested
             Nested nest = new Nested(string);
             return nest.DeriNest();
         } else { // type == 6
             Expression exp = new Expression(string);
+            //System.out.println("Content: deriExp " + exp.DeriExp());
             return exp.DeriExp();
         }
     }
@@ -137,7 +139,7 @@ public class NodeContent {
                 nestDepth--;
                 if (nestDepth < 0) {
                     System.out.println("WRONG FORMAT!");
-                    System.out.println("content Found ')' when not in brackets !");  // (x+x+x) )  + sin(x*sin(x)
+                    System.out.println("content Found ')' not in brackets !");
                     return false;
                 }
             } else if (i != 0 && (charArray[i] == '+' || charArray[i] == '-')
@@ -148,6 +150,12 @@ public class NodeContent {
                 } else {
                     continue;
                 }
+            } else if (i != 0 && (charArray[i] == '+' || charArray[i] == '-')
+                    && charArray[i + 1] == '(') { // -(x) maybe
+                if (nestDepth == 0) {
+                    // wait
+                }
+
             } else {
                 continue;
             }
@@ -155,13 +163,13 @@ public class NodeContent {
         // if整个表达式只有一个项
         if (itemNum == 1) { //这个地方有问题，它依然可能是Item类 (x^2+x^3) * cos(x)，误判成了表达式
             //System.out.println("this content Only have one Item : " + input);
-            if (input.startsWith("(") && input.endsWith(")")) {
+            if (((string.startsWith("(") || string.startsWith("-(")
+                    || string.startsWith("+("))) && input.endsWith(")")) {
                 if (JudgeItem(input)) {
                     return false; // 应该是Item
                 } else {
                     return true;
                 }
-                 // 不能简单通过括号判断，再加一层judgeItem？
             } else {
                 return false;
             }
@@ -191,7 +199,7 @@ public class NodeContent {
         }
         if (itemNum == 1) {
             return false;
-        } else { // 把上面剩余的最后Item也弄出来
+        } else {
             return true;
         }
 

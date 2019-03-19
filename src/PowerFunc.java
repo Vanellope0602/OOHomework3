@@ -5,6 +5,7 @@ public class PowerFunc { //这是一个"幂函数类"
     private BigInteger powExpo = BigInteger.ONE; //幂次数
     private BigInteger deriCoeff = BigInteger.ONE;
     private BigInteger deriExpo = BigInteger.ONE;
+    private BigInteger grand = new BigInteger("10000");
 
     public BigInteger getPowCoeff() {
         return powCoeff;
@@ -62,14 +63,18 @@ public class PowerFunc { //这是一个"幂函数类"
             }
 
         }
+        if (powExpo.compareTo(grand) > 0) {
+            System.out.println("WRONG FORMAT!");
+            System.out.println("Expo larger than a grand!");
+        }
 
-        //System.out.println("powCoeff is " + powCoeff + " powExpo is " +powExpo);
+        //System.out.println("powCoeff " + powCoeff + " powExpo " +powExpo);
     }
 
     public String DeriPower() {
         String s = "";
         deriCoeff = powCoeff.multiply(powExpo);
-        //System.out.println("powCoeff is " + powCoeff + " powExpo is " +powExpo);
+        //System.out.println("powCoeff " + powCoeff + " powExpo " +powExpo);
 
         if (!powExpo.equals(BigInteger.ZERO)) { // 指数!=0
             deriExpo = powExpo.subtract(BigInteger.ONE);
@@ -85,13 +90,13 @@ public class PowerFunc { //这是一个"幂函数类"
         }
         if (deriExpo.equals(BigInteger.ONE)) {
             // nothing
-        } else if (deriExpo.equals(BigInteger.ZERO)){ // 次数为0，不要出现x，重写s
+        } else if (deriExpo.equals(BigInteger.ZERO)) { // 次数为0，不要出现x
             s = deriCoeff + "";
         } else {
             s = s + "^" + deriExpo;
         }
-
-        //System.out.println("DeriCOeff is " + deriCoeff + " deriExpo is " +deriExpo + " Power deri " + s);
+        //System.out.println("DeriCOeff is " +
+        // deriCoeff + " deriExpo is " +deriExpo + " Power deri " + s);
         return s;
     }
 

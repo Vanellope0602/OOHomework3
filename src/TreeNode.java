@@ -1,4 +1,3 @@
-import java.math.BigInteger;
 // 项或表达式必须外面加上括号才可以嵌套到三角函数当中，否则WF
 // 若发现裸露的项或表达式在sin (  )中，则为WF
 // Tree node
@@ -9,6 +8,7 @@ public class TreeNode {
     private int childNum = 0;
 
     private TreeNode father;
+
     public TreeNode() {
 
     }
@@ -30,6 +30,5 @@ public class TreeNode {
     public int contentType() {
         return content.getType();
     }
-
 
 }

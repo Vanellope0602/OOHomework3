@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
  * 4 * ((x^2 + sin(cos(3*x)) -2333 ) * x^7 - 9*x^9),
  * 若发现()当中仍有expression级别的，继续切割，直到只有一个Item为止
  */
+
 public class Item {
     private String string;
     private String[] cutItem = new String[100]; // 貌似有一点像Tree Node的功能
@@ -19,8 +20,10 @@ public class Item {
 
     private String substring;
     private int itemNum = 1;
+
     public void Parse() { // 拆分连乘项
         char[] charArray = this.string.toCharArray();
+        //System.out.println("Item Parse this string: " + string);
         int nestDepth = 0;
         int nextBeginIndex = 0;
         int endIndex = 0;
@@ -31,10 +34,10 @@ public class Item {
                 nestDepth--;
                 if (nestDepth < 0) {
                     System.out.println("WRONG FORMAT!");
-                    System.out.println("In item func found ')' when not in bracket");
+                    System.out.println("item found ')' not in bracket");
                 }
                 //judge expresion
-            } else if (i != 0 && (charArray[i] == '*') ) { // 拆连乘项
+            } else if (i != 0 && (charArray[i] == '*')) { // 拆连乘项
                 if (nestDepth == 0) {
                     endIndex = i; // 下面截取该项
                     substring = string.substring(nextBeginIndex, endIndex);
@@ -59,28 +62,40 @@ public class Item {
         cutItem[itemNum + 1] = "END";
     }
 
+    private Pattern notNestConst = Pattern.compile("[+-]?\\d+"); // 常数项
+    private Pattern notNestPow =
+            Pattern.compile("[+-]?(\\d+\\*)?x(\\^[+-]?\\d+)?");
+    private Pattern notNestSin =
+            Pattern.compile("[+-]?(sin)\\(+x\\)+(\\^[+-]?\\d+)?");
+    private Pattern notNestCos =
+            Pattern.compile("[+-]?(cos)\\(+x\\)+(\\^[+-]?\\d+)?");
+    private Pattern nestBracket =
+            Pattern.compile("(sin\\((?!x))|(cos\\((?!x))" +
+                    "|(sin\\(x(?!\\)))|(cos\\(x(?!\\)))");
+
     public void cut() {
         this.Parse(); // 解析，分成可能的表达式项或者
-        Pattern notNestConst = Pattern.compile("[+-]?\\d+"); // 常数项
-        Pattern notNestPow = Pattern.compile("[+-]?(\\d+\\*)?x(\\^[+-]?\\d+)?");
-        Pattern notNestSin = Pattern.compile("[+-]?(sin)\\(+x\\)+(\\^[+-]?\\d+)?"); //
-        Pattern notNestCos = Pattern.compile("[+-]?(cos)\\(+x\\)+(\\^[+-]?\\d+)?"); //
-        Pattern nestBracket = Pattern.compile("(sin\\((?!x))|(cos\\((?!x))" +
-                "|(sin\\(x(?!\\)))|(cos\\(x(?!\\)))");
-
-        //cutItem = string.split("\\*"); // 这个切割十分草率，里面可能是 (expression) * (factor)
         // 必须确保是nested == 0 才可以切割否则还要扔给Expression
         deriTmp = new String[itemNum];
-        for (int i = 0; i < itemNum; i++) { //i < cutItem.length && cutItem[i] != "END"
+        for (int i = 0; i < itemNum; i++) {
             //System.out.println("This cutItem is " + cutItem[i]);
             Matcher nest = nestBracket.matcher(cutItem[i]);
-            if (nest.find()){ // 发现是嵌套
-                type = 5;
-                //System.out.println("found nested item in cutItems: " + cutItem[i]);
-                Nested nestItem = new Nested(cutItem[i]);
-                deriTmp[i] = nestItem.DeriNest();
+            if (nest.find()) { // 发现是嵌套
+                if (cutItem[i].startsWith("(") && cutItem[i].endsWith(")")) {
+                    Expression exp = new Expression(cutItem[i]);
+                    type = 6;
+                    //System.out.println("cutitem found exp " + cutItem[i]);
+                    deriTmp[i] = exp.DeriExp(); // 发现表达式
+                } else {
+                    type = 5;
+                    //System.out.println("found nested cutItems: "+cutItem[i]);
+                    Nested nestItem = new Nested(cutItem[i]);
+                    deriTmp[i] = nestItem.DeriNest();
+                }
             } else if (cutItem[i].startsWith("(") && cutItem[i].endsWith(")")) {
                 Expression exp = new Expression(cutItem[i]);
+                type = 6;
+                //System.out.println("cutitem found exp " + cutItem[i]);
                 deriTmp[i] = exp.DeriExp(); // 发现表达式
             }
             else if (cutItem[i].contains("sin")) {

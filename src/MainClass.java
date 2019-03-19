@@ -1,8 +1,6 @@
 import java.util.Scanner;
-import java.util.ArrayList;
 import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-import java.math.BigInteger;
+
 // 这次要把所有的非法情况都考虑清楚
 
 public class MainClass {
@@ -47,9 +45,9 @@ public class MainClass {
             return false;
         }
         String wrongPattern = "([+-]{3,}[a-z])" // +++x, +++sin(x)
-                + "|([+-]{4,})" // 连续4个以上符号
+                + "|([+-]{4,})|(\\*[+-](?!\\d+))" // 连续4个以上符号， *-,*+后面非数字
                 + "|(\\*[+-]x)|(\\^[+-]x)" // 2*+x, ^+x
-                + "|(\\(\\))"  //括号里是空的()
+                + "|(\\(\\))|(\\d+\\()|(\\)\\d+)"  //括号里是空的(),括号连数字
                 + "|(\\d+\\^\\d+)" //eg. x^sin(x), 2^, 8^21
                 + "|([\\^]{2,})|([\\*]{2,})|(x{2,})"  // ^^,**,xx
                 + "|([+-]\\^)|([+-]\\*)" // +^, ^-, +*
@@ -98,8 +96,10 @@ public class MainClass {
         return fixedInput;
 
     }
+
     private TreeNode[] nodes = new TreeNode[100]; // 先给100个节点
     private int itemNum = 1;
+
     public void Distribute(String string) {
         String input = string; //顶层表达式
         int nestDepth = 0;
@@ -123,9 +123,8 @@ public class MainClass {
                     //System.out.println(substring);
                     nextBeginIndex = i;
                     nodes[itemNum - 1] = new TreeNode(substring);
-
-                    //System.out.println("Type: " + nodes[itemNum - 1].contentType());
-
+                    //System.out.println("Type: "
+                    // + nodes[itemNum - 1].contentType());
                     itemNum++;
                 } else {
                     continue;
@@ -137,12 +136,11 @@ public class MainClass {
         // if整个表达式只有一个项
         if (itemNum == 1) {
             nodes[0] = new TreeNode(input);
-            //System.out.println("Only have one Item : " + input);
+            //System.out.println("Main :Only have one Item : " + input);
             //System.out.println("Type: " + nodes[itemNum - 1].contentType());
         } else { // 把上面剩余的最后Item也弄出来
             substring = input.substring(nextBeginIndex,input.length());
             nodes[itemNum - 1] = new TreeNode(substring);
-
             //System.out.println("Type: " + nodes[itemNum - 1].contentType());
             //System.out.println(substring);
         }
@@ -159,7 +157,7 @@ public class MainClass {
     }
 
     public static void main(String[] args) {
-        /*try {
+        try {
             Scanner s = new Scanner(System.in);
             if (!s.hasNextLine()) { // none line
                 System.out.println("WRONG FORMAT!");
@@ -171,34 +169,14 @@ public class MainClass {
                 System.exit(0);
             }
             input = newMain.preTreatment(input); // pretreated the string
-            System.out.println("After pretreatment : " + input);
+            //System.out.println("After pretreatment : " + input);
             newMain.Distribute(input);  // get the elements into the tree
             newMain.DeriMain();
 
-            System.out.println("All done.");
+            //System.out.println("All done.");
         } catch (Exception e) {
             System.out.println("WRONG FORMAT!");
-            System.out.println("Cause an exception, cause is below");
-            System.out.println(e.getCause() + " " + e.getMessage());
         }
-        */
 
-
-        Scanner s = new Scanner(System.in);
-        if (!s.hasNextLine()) { // none line
-            System.out.println("WRONG FORMAT!");
-            System.exit(0);
-        }
-        String input = s.nextLine();
-        MainClass newMain = new MainClass();
-        if (!newMain.CheckValid(input)) {
-            System.exit(0);
-        }
-        input = newMain.preTreatment(input); // pretreated the string
-        //System.out.println("After pretreatment : " + input);
-        newMain.Distribute(input);  // get the elements into the tree
-        newMain.DeriMain();
-
-        //System.out.println("All done.");
     }
 }

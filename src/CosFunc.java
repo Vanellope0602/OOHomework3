@@ -4,9 +4,10 @@ import java.math.BigInteger;
 public class CosFunc {
     private BigInteger cosCoeff = BigInteger.ONE; // 有可能是1！
     private BigInteger cosExpo = BigInteger.ZERO;
-
+    private BigInteger grand = new BigInteger("10000");
     //提取出cos的系数和和次数，貌似只用次数就可以了，把系数全都堆到幂函数那里去
     // 然后再乘上 -sin(x), 系数变为负的，sinExpo++；
+
     public BigInteger getCosExpo() {
         return cosExpo;
     }
@@ -27,10 +28,15 @@ public class CosFunc {
         } else {
             cosExpo = BigInteger.ONE;
         }
+        if (cosExpo.compareTo(grand) > 0) {
+            System.out.println("WRONG FORMAT!");
+            System.out.println("Expo larger than a grand!");
+        }
     }
 
     private BigInteger deriCoeff = BigInteger.ONE;
     private BigInteger deriExpo = BigInteger.ZERO;
+
     public String DeriCos() {
         String s = "";
         deriCoeff = cosCoeff.multiply(cosExpo).negate(); // cos(x)求导后系数变为相反数

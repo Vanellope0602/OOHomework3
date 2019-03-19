@@ -1,4 +1,5 @@
 import java.math.BigInteger;
+import java.util.regex.Pattern;
 
 /* Nested = 嵌套因子，指导书上的嵌套类
  * 例如： sin(sin(x^2)^3)^8
@@ -19,7 +20,6 @@ public class Nested {
         this.content = string;
         char[] charArray = content.toCharArray();
         //System.out.println("Put in nested string: " + content);
-
         int nestDepth = 0;
         int beginIndex = 0;
         int endIndex = 0;
@@ -28,7 +28,7 @@ public class Nested {
             if (charArray[i] == '(') {
                 nestDepth++;
                 if (triangleOccur && nestDepth == 1) { // 提取括号内inside内容
-                    beginIndex = i+1;
+                    beginIndex = i + 1;
                     if (charArray[i - 1] == 'n') { // 外面嵌套的是sin
                         triType = 1;
                     } else if (charArray[i - 1] == 's') { // 外面嵌套的是cos
@@ -52,8 +52,10 @@ public class Nested {
                 triangleOccur = true;
                 triType = 2;
             } else if (charArray[i] == '^' && nestDepth == 0) {
-                String tmp = content.substring(i+1, content.length());
+                String tmp = content.substring(i + 1, content.length());
                 expo = new BigInteger(tmp,10);
+            } else if (charArray[i] == '-' && nestDepth == 0) {
+                coeff = coeff.negate(); // 前面带有负号
             }
         }
         if (triType == 0) {
@@ -62,13 +64,20 @@ public class Nested {
         }
         inside = content.substring(beginIndex, endIndex);
         //System.out.println("Nested Inside: " + inside);
+        BigInteger grand = new BigInteger("10000");
+        if (expo.compareTo(grand) > 0) {
+            System.out.println("WRONG FORMAT!");
+            System.out.println("Expo larger than a grand!");
+        }
+        if (!JudgeFactor()) {
+            System.out.println("WRONG FORMAT!");
+            System.out.println("inside not a factor");
+        }
     }
 
-    public void Parse() { // dispose this string to kick off the outside bracket
-
-    }
     private BigInteger deriCoeff = BigInteger.ONE;
     private BigInteger deriExpo = BigInteger.ONE;
+
     public String DeriNest() { // 这个三角函数系数求导后还有一点问题哦！是数学问题哦！早上起来看吧
         deriCoeff = coeff.multiply(expo);
         deriExpo = expo.subtract(BigInteger.ONE);
@@ -89,7 +98,7 @@ public class Nested {
 
         } else if (triType == 2) {
             deriCoeff = deriCoeff.negate();
-            //System.out.println("Outside is cosfunc, dericoeff is " + deriCoeff);
+            //System.out.println("Outside cosfunc, dericoeff is" + deriCoeff);
             if (!deriCoeff.equals(BigInteger.ONE)) {
                 s = deriCoeff + "*cos(" + inside + ")";
             } else {
@@ -105,6 +114,72 @@ public class Nested {
         // 返回  9*cos(inside)^8
         s = s + "*" + tmpDeri;
         return s;
+    }
+    //准确的说，这些名字应该叫 "not factor pow, not factor sin"
+
+    private Pattern notNestConst = Pattern.compile("[+-]?\\d+"); // 常数项
+    private Pattern notNestPow = // +x^2 不算因子，可拆分成+1*x^2是一个项
+            Pattern.compile("x(\\^[+-]?\\d+)?");
+    private Pattern notNestSin =
+            Pattern.compile("(sin)\\(+x\\)+(\\^[+-]?\\d+)?"); //
+    private Pattern notNestCos =
+            Pattern.compile("(cos)\\(+x\\)+(\\^[+-]?\\d+)?"); //
+    private Pattern symbolLetter = Pattern.compile("[+-][a-z]");
+    // -x^2, +sin(x)这些都不算因子，找到
+
+    public boolean JudgeFactor() {
+        //System.out.println("inside: " + inside);
+        if (notNestConst.matcher(inside).matches()
+                || notNestPow.matcher(inside).matches()
+                || notNestSin.matcher(inside).matches()
+                || notNestCos.matcher(inside).matches()) {
+            return true;
+        }
+        char[] charArray = inside.toCharArray();
+        int nestDepth = 0;
+        int itemNum = 1;
+        for (int i = 0; i < charArray.length; i++) {
+            if (charArray[i] == '(') {
+                nestDepth++;
+                //System.out.println("Nestdepth++ =  " + nestDepth);
+                if (nestDepth == 0 &&
+                        symbolLetter.matcher(inside.substring(i)).find()) {
+                    System.out.println("WRONG FORMAT!");
+                    System.out.println("symbolletter");
+                    return false;
+                }
+            } else if (charArray[i] == ')') {
+                nestDepth--;
+                //System.out.println("Nestdepth-- " + nestDepth);
+                if (nestDepth == 0 &&
+                        symbolLetter.matcher(inside.substring(i)).find()) {
+                    System.out.println("WRONG FORMAT!");
+                    System.out.println("symbolletter");
+                    return false;
+                }
+                //judge expresion
+            } else if (i != 0 && (charArray[i] == '*')) { // 拆连乘项
+                if (nestDepth == 0) {
+                    itemNum++;
+                    return false;
+                } else {
+                    continue;
+                }
+            }
+
+        }
+        //System.out.println("inside itemNum : " + itemNum);
+        if (itemNum == 1) {
+            if (inside.startsWith("(") && inside.endsWith(")")) {
+                return true;
+            } else {
+                return true;
+            }
+        } else {
+            return true;
+        }
+
+
     }
 
     //拆掉最外面那一层括号以后，括号内的东西提取出来，cos(x)^2丢给新的TreeNode
