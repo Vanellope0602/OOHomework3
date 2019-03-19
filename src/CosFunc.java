@@ -48,7 +48,7 @@ public class CosFunc {
             s = s.replace("^1","");
         }
         s = s + "*sin(x)";
-        System.out.println("Cos deri : " + s + "deriCOeff is " + deriCoeff);
+        //System.out.println("Cos deri : " + s + "deriCOeff is " + deriCoeff);
         return s;
     }
 }

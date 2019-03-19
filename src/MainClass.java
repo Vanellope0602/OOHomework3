@@ -11,7 +11,6 @@ public class MainClass {
         String input = string;
         // Empty string
         if (string.isEmpty() || string.matches("\\s*")) { //空串判断
-            //System.out.println("empty");
             System.out.println("WRONG FORMAT!");
             System.out.println("Empty");
             return false;
@@ -121,11 +120,11 @@ public class MainClass {
                 if (nestDepth == 0) { // 是最外层的加减号，表明前面读完的是Item，多个factor的乘积
                     endIndex = i; // 下面截取该项
                     substring = input.substring(nextBeginIndex, endIndex);
-                    System.out.println(substring);
+                    //System.out.println(substring);
                     nextBeginIndex = i;
                     nodes[itemNum - 1] = new TreeNode(substring);
 
-                    System.out.println("Type: " + nodes[itemNum - 1].contentType());
+                    //System.out.println("Type: " + nodes[itemNum - 1].contentType());
 
                     itemNum++;
                 } else {
@@ -138,16 +137,16 @@ public class MainClass {
         // if整个表达式只有一个项
         if (itemNum == 1) {
             nodes[0] = new TreeNode(input);
-            System.out.println("Only have one Item : " + input);
-            System.out.println("Type: " + nodes[itemNum - 1].contentType());
+            //System.out.println("Only have one Item : " + input);
+            //System.out.println("Type: " + nodes[itemNum - 1].contentType());
         } else { // 把上面剩余的最后Item也弄出来
             substring = input.substring(nextBeginIndex,input.length());
             nodes[itemNum - 1] = new TreeNode(substring);
 
-            System.out.println("Type: " + nodes[itemNum - 1].contentType());
-            System.out.println(substring);
+            //System.out.println("Type: " + nodes[itemNum - 1].contentType());
+            //System.out.println(substring);
         }
-        System.out.println("total nums of items: " + itemNum);
+        //System.out.println("total nums of items: " + itemNum);
     }
 
     public void DeriMain() { //
@@ -156,7 +155,7 @@ public class MainClass {
             toBePrint = toBePrint + nodes[i].Deri() + "+";
         }
         System.out.print(toBePrint.substring(0, toBePrint.length() - 1));
-        System.out.println("\nDerivation done.");
+        //System.out.println("\nDerivation done.");
     }
 
     public static void main(String[] args) {
@@ -196,10 +195,10 @@ public class MainClass {
             System.exit(0);
         }
         input = newMain.preTreatment(input); // pretreated the string
-        System.out.println("After pretreatment : " + input);
+        //System.out.println("After pretreatment : " + input);
         newMain.Distribute(input);  // get the elements into the tree
         newMain.DeriMain();
 
-        System.out.println("All done.");
+        //System.out.println("All done.");
     }
 }

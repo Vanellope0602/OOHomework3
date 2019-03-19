@@ -1,3 +1,4 @@
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 /* Item = 项,指导书上的"乘法"类
  * 由乘法相联因子组成( Multiply ), 因子 * 表达式因子,切出来可能是表达式因子
@@ -28,12 +29,16 @@ public class Item {
                 nestDepth++;
             } else if (charArray[i] == ')') {
                 nestDepth--;
+                if (nestDepth < 0) {
+                    System.out.println("WRONG FORMAT!");
+                    System.out.println("In item func found ')' when not in bracket");
+                }
                 //judge expresion
             } else if (i != 0 && (charArray[i] == '*') ) { // 拆连乘项
                 if (nestDepth == 0) {
                     endIndex = i; // 下面截取该项
                     substring = string.substring(nextBeginIndex, endIndex);
-                    System.out.println(substring);
+                    //System.out.println(substring);
                     nextBeginIndex = i + 1;
                     cutItem[itemNum - 1] = substring;
                     itemNum++;
@@ -44,11 +49,12 @@ public class Item {
         }
         if (itemNum == 1) {
             cutItem[0] = string;
-            System.out.println("Only have one Item : " + string);
+            //System.out.println("Only have one Item : " + string);
         } else { // 把上面剩余的最后Item也弄出来
             substring = string.substring(nextBeginIndex,string.length());
             cutItem[itemNum - 1] = substring;
-            System.out.println(substring);
+            //System.out.println("Have " + itemNum + " items :");
+            //System.out.println(substring);
         }
         cutItem[itemNum + 1] = "END";
     }
@@ -59,18 +65,28 @@ public class Item {
         Pattern notNestPow = Pattern.compile("[+-]?(\\d+\\*)?x(\\^[+-]?\\d+)?");
         Pattern notNestSin = Pattern.compile("[+-]?(sin)\\(+x\\)+(\\^[+-]?\\d+)?"); //
         Pattern notNestCos = Pattern.compile("[+-]?(cos)\\(+x\\)+(\\^[+-]?\\d+)?"); //
+        Pattern nestBracket = Pattern.compile("(sin\\((?!x))|(cos\\((?!x))" +
+                "|(sin\\(x(?!\\)))|(cos\\(x(?!\\)))");
+
         //cutItem = string.split("\\*"); // 这个切割十分草率，里面可能是 (expression) * (factor)
         // 必须确保是nested == 0 才可以切割否则还要扔给Expression
         deriTmp = new String[itemNum];
         for (int i = 0; i < itemNum; i++) { //i < cutItem.length && cutItem[i] != "END"
-            System.out.println("This cutItem is " + cutItem[i]);
-            if (cutItem[i].startsWith("(") && cutItem[i].endsWith(")")) {
+            //System.out.println("This cutItem is " + cutItem[i]);
+            Matcher nest = nestBracket.matcher(cutItem[i]);
+            if (nest.find()){ // 发现是嵌套
+                type = 5;
+                //System.out.println("found nested item in cutItems: " + cutItem[i]);
+                Nested nestItem = new Nested(cutItem[i]);
+                deriTmp[i] = nestItem.DeriNest();
+            } else if (cutItem[i].startsWith("(") && cutItem[i].endsWith(")")) {
                 Expression exp = new Expression(cutItem[i]);
-                deriTmp[i] = exp.DeriExp();
+                deriTmp[i] = exp.DeriExp(); // 发现表达式
             }
             else if (cutItem[i].contains("sin")) {
                 if (!notNestSin.matcher(cutItem[i]).matches()) {
                     System.out.println("WRONG FORMAT!");
+                    System.out.println("Found 'sin' but not sinFunc");
                 } else {
                     type = 2;
                     SinFunc sin = new SinFunc(cutItem[i]);
@@ -79,6 +95,7 @@ public class Item {
             } else if (cutItem[i].contains("cos")) {
                 if (!notNestCos.matcher(cutItem[i]).matches()) {
                     System.out.println("WRONG FORMAT!");
+                    System.out.println("Found 'cos' but not cosFunc");
                 } else {
                     type = 3;
                     CosFunc cos = new CosFunc(cutItem[i]);
@@ -87,12 +104,13 @@ public class Item {
             } else if (cutItem[i].contains("x")) {
                 if (!notNestPow.matcher(cutItem[i]).matches()) {
                     System.out.println("WRONG FORMAT!");
+                    System.out.println("Found 'x' but not a powerfunc");
                 } else {
                     type = 1;
                     PowerFunc pow = new PowerFunc(cutItem[i]);
                     deriTmp[i] = pow.DeriPower();
                 }
-            } else {
+            }  else { // 常数项
                 if (!notNestConst.matcher(cutItem[i]).matches()) {
                     System.out.println("WRONG FORMAT!");
                 } else {
@@ -100,8 +118,7 @@ public class Item {
                     deriTmp[i] = "0";
                 }
             }
-
-            System.out.println("Corresponding deriTmp is " + deriTmp[i]);
+            //System.out.println("Corresponding deriTmp is " + deriTmp[i]);
         }
 
     }
@@ -118,7 +135,7 @@ public class Item {
             }
             s = s.substring(0, s.length() - 1);
             s = s + "+";
-            System.out.println("Now s is " + s);
+            //System.out.println("Now s is " + s);
         }
         s = s.substring(0, s.length() - 1); // 去掉末尾的+
         return s;

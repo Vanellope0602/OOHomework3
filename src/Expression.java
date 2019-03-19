@@ -27,6 +27,7 @@ public class Expression { // 外面应该是有最外层括号嵌套的
             } else if (charArray[i] == ')') {
                 nestDepth--;
                 if (nestDepth < 0) {
+                    System.out.println("WRONG FORMAT!");
                     System.out.println("Found ')' when not in brackets !");  // (x+x+x) )  + sin(x*sin(x)
                     //return false;
                 }
@@ -35,10 +36,10 @@ public class Expression { // 外面应该是有最外层括号嵌套的
                 if (nestDepth == 0) { // 是最外层的加减号，表明前面读完的是Item，多个factor的乘积
                     endIndex = i; // 下面截取该项
                     substring = input.substring(nextBeginIndex, endIndex);
-                    System.out.println(substring);
+                    //System.out.println(substring);
                     nextBeginIndex = i;
                     nodes[itemNum - 1] = new TreeNode(substring);
-                    System.out.println("Type: " + nodes[itemNum - 1].contentType());
+                    //System.out.println("Type: " + nodes[itemNum - 1].contentType());
                     itemNum++;
                 } else {
                     continue;
@@ -50,16 +51,15 @@ public class Expression { // 外面应该是有最外层括号嵌套的
         // if整个表达式只有一个项
         if (itemNum == 1) {
             nodes[0] = new TreeNode(input);
-            System.out.println("Only have one Item : " + input);
-            System.out.println("Type: " + nodes[itemNum - 1].contentType());
+            //System.out.println("expr Only have one Item : " + input);
+            //System.out.println("in expr func Type: " + nodes[itemNum - 1].contentType());
         } else { // 把上面剩余的最后Item也弄出来
             substring = input.substring(nextBeginIndex,input.length());
             nodes[itemNum - 1] = new TreeNode(substring);
-
-            System.out.println("Type: " + nodes[itemNum - 1].contentType());
-            System.out.println(substring);
+            //System.out.println("in expressionfunc Type: " + nodes[itemNum - 1].contentType());
+            //System.out.println(substring);
         }
-        System.out.println("total nums of items: " + itemNum);
+        //System.out.println("total nums of items: " + itemNum);
 
     }
 

@@ -52,24 +52,29 @@ public class NodeContent {
             } else if (string.contains("sin")) {
                 if (!notNestSin.matcher(string).matches()) {
                     System.out.println("WRONG FORMAT!");
+                    System.out.println("content have sin but not sinfunc");
+
                 } else {
                     type = 2;
                 }
             } else if (string.contains("cos")) {
                 if (!notNestCos.matcher(string).matches()) {
                     System.out.println("WRONG FORMAT!");
+                    System.out.println("content have cos but ont cosfunc");
                 } else {
                     type = 3;
                 }
             } else if (string.contains("x")) {
                 if (!notNestPow.matcher(string).matches()) {
                     System.out.println("WRONG FORMAT!");
+                    System.out.println("Content have x but not powerfunc");
                 } else {
                     type = 1;
                 }
             } else {
                 if (!notNestConst.matcher(string).matches()) {
                     System.out.println("WRONG FORMAT!");
+                    System.out.println("content dont match constant ");
                 } else {
                     type = 0;
                 }
@@ -77,12 +82,15 @@ public class NodeContent {
 
         }
         if (string.startsWith("(") && string.endsWith(")")) { // /先看是否为表达式因子,这个判断还有一些问题，不一定是最外层的括号
-            String tmp = string.substring(1, string.length() - 1); // 把最外层括号去掉，再看里面是不是表达式
-            if (JudgeExp(tmp)) { // 去掉最外层括号如果还发现是表达式
+            //String tmp = string.substring(1, string.length() - 1); // 把最外层括号去掉，再看里面是不是表达式
+            if (JudgeExp(string)) { // 去掉最外层括号如果还发现是表达式
                 type = 6;
             }  // 丢给expression？
+            else if (JudgeItem((string))) {
+                type = 4;
+            }
         }
-        System.out.println("The content type is: " + type);
+        //System.out.println("The content " + string + " type is: " + type);
     }
 
     public int getType() {
@@ -128,13 +136,14 @@ public class NodeContent {
             } else if (charArray[i] == ')') {
                 nestDepth--;
                 if (nestDepth < 0) {
-                    System.out.println("Found ')' when not in brackets !");  // (x+x+x) )  + sin(x*sin(x)
+                    System.out.println("WRONG FORMAT!");
+                    System.out.println("content Found ')' when not in brackets !");  // (x+x+x) )  + sin(x*sin(x)
                     return false;
                 }
             } else if (i != 0 && (charArray[i] == '+' || charArray[i] == '-')
                     && (charArray[i - 1] != '*' && charArray[i - 1] != '^')) {
                 if (nestDepth == 0) { // 是最外层的加减号，表明前面读完的是Item，多个factor的乘积
-                    System.out.println("More items!");
+                    //System.out.println("More items!");
                     itemNum++;
                 } else {
                     continue;
@@ -144,9 +153,18 @@ public class NodeContent {
             }
         }
         // if整个表达式只有一个项
-        if (itemNum == 1) {
-            System.out.println("Only have one Item : " + input);
-            return false;
+        if (itemNum == 1) { //这个地方有问题，它依然可能是Item类 (x^2+x^3) * cos(x)，误判成了表达式
+            //System.out.println("this content Only have one Item : " + input);
+            if (input.startsWith("(") && input.endsWith(")")) {
+                if (JudgeItem(input)) {
+                    return false; // 应该是Item
+                } else {
+                    return true;
+                }
+                 // 不能简单通过括号判断，再加一层judgeItem？
+            } else {
+                return false;
+            }
         } else { // 把上面剩余的最后Item也弄出来
             return true;
         }

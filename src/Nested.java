@@ -18,6 +18,7 @@ public class Nested {
     public Nested(String string) { // 最外层就是三角函数，其括号里面还有一些奇奇怪怪的东西
         this.content = string;
         char[] charArray = content.toCharArray();
+        //System.out.println("Put in nested string: " + content);
 
         int nestDepth = 0;
         int beginIndex = 0;
@@ -27,7 +28,7 @@ public class Nested {
             if (charArray[i] == '(') {
                 nestDepth++;
                 if (triangleOccur && nestDepth == 1) { // 提取括号内inside内容
-                    beginIndex = i;
+                    beginIndex = i+1;
                     if (charArray[i - 1] == 'n') { // 外面嵌套的是sin
                         triType = 1;
                     } else if (charArray[i - 1] == 's') { // 外面嵌套的是cos
@@ -38,27 +39,29 @@ public class Nested {
                 nestDepth--;
                 if (nestDepth < 0) {
                     System.out.println("WRONG FORMAT!");
+                    System.out.println("Nested found ')' when outside");
                 } else if (nestDepth == 0) {
                     endIndex = i;
                 }
-            } else if (charArray[i] == 's' && charArray[i + 1] == 'i' && charArray[i + 2] == 'n') {
+            } else if (charArray[i] == 's' && charArray[i + 1] == 'i'
+                    && charArray[i + 2] == 'n' && nestDepth == 0) {
                 triangleOccur = true;
-            } else if (charArray[i] == 'c' && charArray[i + 1] == 'o' && charArray[i + 2] == 's') {
+                triType = 1;
+            } else if (charArray[i] == 'c' && charArray[i + 1] == 'o'
+                    && charArray[i + 2] == 's' && nestDepth == 0) {
                 triangleOccur = true;
+                triType = 2;
             } else if (charArray[i] == '^' && nestDepth == 0) {
-                int j = i + 1;
-
-                while (Character.isDigit(charArray[j])) {
-                    num = num + charArray[j];
-                    j++;
-                }
+                String tmp = content.substring(i+1, content.length());
+                expo = new BigInteger(tmp,10);
             }
         }
         if (triType == 0) {
             System.out.println("WRONG FORMAT!");
+            System.out.println("no triangle function");
         }
         inside = content.substring(beginIndex, endIndex);
-        System.out.println("Nested Inside: " + inside);
+        //System.out.println("Nested Inside: " + inside);
     }
 
     public void Parse() { // dispose this string to kick off the outside bracket
@@ -72,25 +75,35 @@ public class Nested {
         String s = "";
         TreeNode tmp = new TreeNode(inside);
         String tmpDeri = tmp.Deri();
-        if (triType == 1) {
+        if (triType == 1) {  //sin(sin((2*x)))
+            //System.out.println("outside is sinFunc");
+            if (!deriCoeff.equals(BigInteger.ONE)) {
+                s = deriCoeff + "*sin(" + inside + ")";
+            } else {
+                s = "sin(" + inside + ")";
+            }
+            if (!deriExpo.equals(BigInteger.ONE)) {
+                s = s + "^" + deriExpo; // 次方不为1，可以加上
+            }
+            s = s + "*" + "cos(" + inside + ")";
+
+        } else if (triType == 2) {
+            deriCoeff = deriCoeff.negate();
+            //System.out.println("Outside is cosfunc, dericoeff is " + deriCoeff);
             if (!deriCoeff.equals(BigInteger.ONE)) {
                 s = deriCoeff + "*cos(" + inside + ")";
             } else {
                 s = "cos(" + inside + ")";
             }
-
-        } else if (triType == 2) {
-            if (!deriCoeff.equals(BigInteger.ONE)) {
-                s = deriCoeff.negate() + "*sin(" + inside + ")";
-            } else {
-                s = "sin(" + inside + ")";
+            if (!deriExpo.equals(BigInteger.ONE)) {
+                s = s + "^" + deriExpo; // 次方不为1，可以加上
             }
+            s = s + "*" + "sin(" + inside + ")";
         }
-        if (!deriExpo.equals(BigInteger.ONE)) {
-            s = s + "^" + deriExpo; // 次方不为1，可以加上
-        }
+
         // sin(cos(x)^2)^9 这个返回的是 9*cos(cos(x)^2)^ 8套壳
-        // 返回  9*sin(inside)^8
+        // 返回  9*cos(inside)^8
+        s = s + "*" + tmpDeri;
         return s;
     }
 

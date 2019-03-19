@@ -63,13 +63,13 @@ public class PowerFunc { //这是一个"幂函数类"
 
         }
 
-        System.out.println("powCoeff is " + powCoeff + " powExpo is " +powExpo);
+        //System.out.println("powCoeff is " + powCoeff + " powExpo is " +powExpo);
     }
 
     public String DeriPower() {
         String s = "";
         deriCoeff = powCoeff.multiply(powExpo);
-        System.out.println("powCoeff is " + powCoeff + " powExpo is " +powExpo);
+        //System.out.println("powCoeff is " + powCoeff + " powExpo is " +powExpo);
 
         if (!powExpo.equals(BigInteger.ZERO)) { // 指数!=0
             deriExpo = powExpo.subtract(BigInteger.ONE);
@@ -91,7 +91,7 @@ public class PowerFunc { //这是一个"幂函数类"
             s = s + "^" + deriExpo;
         }
 
-        System.out.println("DeriCOeff is " + deriCoeff + " deriExpo is " +deriExpo + " Power deri " + s);
+        //System.out.println("DeriCOeff is " + deriCoeff + " deriExpo is " +deriExpo + " Power deri " + s);
         return s;
     }
 
