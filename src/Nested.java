@@ -165,6 +165,13 @@ public class Nested {
                 } else {
                     continue;
                 }
+            } else if (nestDepth == 0 &&
+                    (charArray[i] == '-' || charArray[i] == '+')) {
+                String tmp = Character.toString(charArray[i]);
+                tmp = tmp + charArray[i + 1]; // 不是因子！
+                if (symbolLetter.matcher(tmp).matches()) {
+                    return false;
+                }
             }
 
         }
