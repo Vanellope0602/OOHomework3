@@ -1,6 +1,5 @@
 # OOHomework3
-The last derivation in unit 1.
+###The last derivation in unit 1.
 
-**这里只是为了防止我不小心把作业弄丢的地方**
+**由于测评机只会检测第一行的内容，所以在判断为`WRONG FORMAT!`的同时会输出一些判断为错误的理由**
 
-push to Gayhub
